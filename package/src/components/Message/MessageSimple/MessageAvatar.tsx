@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { ChatContextValue, useChatContext } from '../../../contexts/chatContext/ChatContext';
+import { useCustomFormat } from '../../../contexts/formatContext/FormatContext';
 import {
   MessageContextValue,
   useMessageContext,
@@ -34,6 +35,7 @@ const MessageAvatarWithContext = <
       },
     },
   } = useTheme();
+  const { formatAvatar, formatName } = useCustomFormat<StreamChatGenerics>();
 
   const visible = typeof showAvatar === 'boolean' ? showAvatar : lastGroupMessage;
 
@@ -44,9 +46,9 @@ const MessageAvatarWithContext = <
     >
       {visible ? (
         <Avatar
-          image={message.user?.image}
+          image={formatAvatar(message.user)}
           ImageComponent={ImageComponent}
-          name={message.user?.name || message.user?.id}
+          name={formatName(message.user)}
           size={size || BASE_AVATAR_SIZE}
         />
       ) : (

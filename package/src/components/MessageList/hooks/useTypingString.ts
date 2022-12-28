@@ -1,4 +1,5 @@
 import { useChatContext } from '../../../contexts/chatContext/ChatContext';
+import { useCustomFormat } from '../../../contexts/formatContext/FormatContext';
 import { useThreadContext } from '../../../contexts/threadContext/ThreadContext';
 import { useTranslationContext } from '../../../contexts/translationContext/TranslationContext';
 import { useTypingContext } from '../../../contexts/typingContext/TypingContext';
@@ -14,7 +15,8 @@ export const useTypingString = <
   const { t } = useTranslationContext();
   const { typing } = useTypingContext<StreamChatGenerics>();
 
-  const filteredTypingUsers = filterTypingUsers({ client, thread, typing });
+  const { formatName } = useCustomFormat<StreamChatGenerics>();
+  const filteredTypingUsers = filterTypingUsers({ client, thread, typing }, formatName);
 
   if (filteredTypingUsers.length === 1) {
     return t('{{ user }} is typing', { user: filteredTypingUsers[0] });

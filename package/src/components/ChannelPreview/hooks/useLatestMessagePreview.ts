@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import type { Channel, ChannelState, MessageResponse, StreamChat, UserResponse } from 'stream-chat';
 
 import { useChatContext } from '../../../contexts/chatContext/ChatContext';
+import { useCustomFormat } from '../../../contexts/formatContext/FormatContext';
 import {
   isDayOrMoment,
   TDateTimeParser,
@@ -36,13 +37,14 @@ const getMessageSenderName = <
   currentUserId: string | undefined,
   t: (key: string) => string,
   membersLength: number,
+  formatName: (user: UserResponse<StreamChatGenerics>) => string | undefined,
 ) => {
   if (message?.user?.id === currentUserId) {
     return t('You');
   }
 
-  if (membersLength > 2) {
-    return message?.user?.name || message?.user?.username || message?.user?.id || '';
+  if (membersLength > 2 && message?.user) {
+    return formatName(message.user) || '';
   }
 
   return '';
@@ -52,10 +54,11 @@ const getMentionUsers = <
   StreamChatGenerics extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 >(
   mentionedUser: UserResponse<StreamChatGenerics>[] | undefined,
+  formatName: (user: UserResponse<StreamChatGenerics>) => string | undefined,
 ) => {
   if (Array.isArray(mentionedUser)) {
     const mentionUserString = mentionedUser.reduce((acc, cur) => {
-      const userName = cur.name || cur.id || '';
+      const userName = formatName(cur) || '';
       if (userName) {
         acc += `${acc.length ? '|' : ''}@${userName}`;
       }
@@ -73,6 +76,7 @@ const getLatestMessageDisplayText = <
   client: StreamChat<StreamChatGenerics>,
   message: LatestMessage<StreamChatGenerics> | undefined,
   t: (key: string) => string,
+  formatName: (user: UserResponse<StreamChatGenerics>) => string | undefined,
 ) => {
   if (!message) return [{ bold: false, text: t('Nothing yet...') }];
   const isMessageTypeDeleted = message.type === 'deleted';
@@ -80,7 +84,7 @@ const getLatestMessageDisplayText = <
   const currentUserId = client?.userID;
   const members = Object.keys(channel.state.members);
 
-  const messageSender = getMessageSenderName(message, currentUserId, t, members.length);
+  const messageSender = getMessageSenderName(message, currentUserId, t, members.length, formatName);
   const messageSenderText = messageSender
     ? `${messageSender === t('You') ? '' : '@'}${messageSender}: `
     : '';
@@ -88,7 +92,7 @@ const getLatestMessageDisplayText = <
   if (message.text) {
     // rough guess optimization to limit string preview to max 100 characters
     const shortenedText = message.text.substring(0, 100).replace(/\n/g, ' ');
-    const mentionedUsers = getMentionUsers(message.mentioned_users);
+    const mentionedUsers = getMentionUsers(message.mentioned_users, formatName);
     const regEx = new RegExp(`^(${mentionedUsers})`);
     return [
       { bold: boldOwner, text: messageSenderText },
@@ -183,6 +187,7 @@ const getLatestMessagePreview = <
 >(params: {
   channel: Channel<StreamChatGenerics>;
   client: StreamChat<StreamChatGenerics>;
+  formatName: (user: UserResponse<StreamChatGenerics>) => string | undefined;
   readEvents: boolean;
   t: (key: string) => string;
   tDateTimeParser: TDateTimeParser;
@@ -190,7 +195,7 @@ const getLatestMessagePreview = <
     | ReturnType<ChannelState<StreamChatGenerics>['formatMessage']>
     | MessageResponse<StreamChatGenerics>;
 }) => {
-  const { channel, client, lastMessage, readEvents, t, tDateTimeParser } = params;
+  const { channel, client, formatName, lastMessage, readEvents, t, tDateTimeParser } = params;
 
   const messages = channel.state.messages;
 
@@ -215,7 +220,7 @@ const getLatestMessagePreview = <
   return {
     created_at: getLatestMessageDisplayDate(message, tDateTimeParser),
     messageObject: message,
-    previews: getLatestMessageDisplayText(channel, client, message, t),
+    previews: getLatestMessageDisplayText(channel, client, message, t, formatName),
     status: getLatestMessageReadStatus(channel, client, message, readEvents),
   };
 };
@@ -238,6 +243,7 @@ export const useLatestMessagePreview = <
 ) => {
   const { client } = useChatContext<StreamChatGenerics>();
   const { t, tDateTimeParser } = useTranslationContext();
+  const { formatName } = useCustomFormat<StreamChatGenerics>();
 
   const channelConfigExists = typeof channel?.getConfig === 'function';
 
@@ -285,6 +291,7 @@ export const useLatestMessagePreview = <
         getLatestMessagePreview({
           channel,
           client,
+          formatName,
           lastMessage,
           readEvents,
           t,

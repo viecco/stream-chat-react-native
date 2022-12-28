@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ChatContextValue, useChatContext } from '../../../contexts/chatContext/ChatContext';
+import { useCustomFormat } from '../../../contexts/formatContext/FormatContext';
 import type { MessageContextValue } from '../../../contexts/messageContext/MessageContext';
 import { useTheme } from '../../../contexts/themeContext/ThemeContext';
 
@@ -46,6 +47,7 @@ export const MessageRepliesAvatarsWithContext = <
       },
     },
   } = useTheme();
+  const { formatAvatar, formatName } = useCustomFormat<StreamChatGenerics>();
 
   const avatars = message.thread_participants?.slice(-2) || [];
   const hasMoreThanOneReply = avatars.length > 1;
@@ -77,9 +79,9 @@ export const MessageRepliesAvatarsWithContext = <
               },
               avatar,
             ]}
-            image={user.image}
+            image={formatAvatar(user)}
             ImageComponent={ImageComponent}
-            name={user.name}
+            name={formatName(user)}
             size={avatarSize ? avatarSize : i === 1 ? 18 : 16}
           />
         </View>

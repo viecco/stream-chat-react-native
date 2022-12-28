@@ -3,6 +3,7 @@ export * from './channelContext/ChannelContext';
 export * from './channelsContext/ChannelsContext';
 export * from './chatContext/ChatContext';
 export * from './debugContext/DebugContext';
+export * from './formatContext/FormatContext';
 export * from './imageGalleryContext/ImageGalleryContext';
 export * from './keyboardContext/KeyboardContext';
 export * from './messageContext/MessageContext';

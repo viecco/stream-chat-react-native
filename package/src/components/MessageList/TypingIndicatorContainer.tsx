@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { filterTypingUsers } from './utils/filterTypingUsers';
 
 import { ChatContextValue, useChatContext } from '../../contexts/chatContext/ChatContext';
+import { useCustomFormat } from '../../contexts/formatContext/FormatContext';
 import { useTheme } from '../../contexts/themeContext/ThemeContext';
 import { ThreadContextValue, useThreadContext } from '../../contexts/threadContext/ThreadContext';
 import { TypingContextValue, useTypingContext } from '../../contexts/typingContext/TypingContext';
@@ -36,7 +37,8 @@ const TypingIndicatorContainerWithContext = <
       messageList: { typingIndicatorContainer },
     },
   } = useTheme();
-  const typingUsers = filterTypingUsers({ client, thread, typing });
+  const { formatName } = useCustomFormat<StreamChatGenerics>();
+  const typingUsers = filterTypingUsers({ client, thread, typing }, formatName);
 
   if (!typingUsers.length) {
     return null;

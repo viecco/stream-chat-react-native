@@ -1,3 +1,5 @@
+import type { UserResponse } from 'stream-chat';
+
 import type { ChatContextValue } from '../../../contexts/chatContext/ChatContext';
 import type { ThreadContextValue } from '../../../contexts/threadContext/ThreadContext';
 import type { TypingContextValue } from '../../../contexts/typingContext/TypingContext';
@@ -11,11 +13,10 @@ type FilterTypingUsersParams<
 
 export const filterTypingUsers = <
   StreamChatGenerics extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
->({
-  client,
-  thread,
-  typing,
-}: FilterTypingUsersParams<StreamChatGenerics>) => {
+>(
+  { client, thread, typing }: FilterTypingUsersParams<StreamChatGenerics>,
+  formatName: (user?: UserResponse<StreamChatGenerics>) => string | undefined,
+) => {
   const nonSelfUsers: string[] = [];
 
   if (!client || !client.user || !typing) return nonSelfUsers;
@@ -38,7 +39,7 @@ export const filterTypingUsers = <
       return;
     }
 
-    const user = typing[typingKey].user?.name || typing[typingKey].user?.id;
+    const user = formatName(typing[typingKey].user);
     if (user) {
       nonSelfUsers.push(user);
     }
